@@ -1,0 +1,76 @@
+experiment:
+  name: d4rt_repro_v2_model
+  seed: 42
+model:
+  name: d4rt
+  input:
+    clip_frames: 48
+    image_size:
+    - 256
+    - 256
+    channels: 3
+    use_aspect_ratio_token: true
+  encoder:
+    type: vit_video
+    variant: vit-g
+    num_layers: 40
+    patch_size_t_h_w:
+    - 2
+    - 16
+    - 16
+    attention_pattern: interleaved_local_framewise_and_global
+    hidden_dim: 1408
+    num_heads: 16
+    mlp_ratio: 4.3636363636
+    max_tokens: 6144
+    pretrained:
+      enabled: true
+      type: videomae_v2
+      path: checkpoints/VideoMAE2/weights/mae-g/vit_g_hybrid_pt_1200e.pth
+      strict: true
+      must_succeed: true
+  decoder:
+    type: transformer_cross_attention
+    num_layers: 8
+    query_self_attention: false
+    hidden_dim: 1280
+    num_heads: 16
+    mlp_ratio: 3.5
+    cross_attention_to_global_scene_representation: true
+  query_embedding:
+    fields:
+    - u
+    - v
+    - t_src
+    - t_tgt
+    - t_cam
+    uv_encoding:
+      type: fourier_features
+      num_bands: 8
+    timestep_encoding:
+      type: learned_discrete_embedding
+    uv_num_bands: 8
+    local_rgb_patch:
+      enabled: true
+      patch_size: 9
+  heads:
+    output_dim_total: 13
+    xyz_3d: 3
+    uv_2d: 2
+    visibility: 1
+    displacement: 3
+    normal: 3
+    confidence: 1
+geometry_decoding:
+  extrinsics_from_queries:
+    method: umeyama
+    source_grid_hw:
+    - 32
+    - 32
+  intrinsics_from_queries:
+    method: median_from_fx_fy_estimates
+    fx_formula: fx = pz * (u - 0.5) / px
+    fy_formula: fy = pz * (v - 0.5) / py
+dense_tracking:
+  algorithm: occupancy_grid_tracking_all_pixels
+  enable: true

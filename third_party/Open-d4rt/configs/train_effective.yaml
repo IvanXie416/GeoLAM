@@ -1,0 +1,240 @@
+experiment:
+  name: d4rt_worldtrack_sota_ninemix_clip48_a_query_local_lr4e_6
+  seed: 42
+  output_dir: output/exp_worldtrack_sota_0512/worldtrack_sota_ninemix_clip48_a_query_local_lr4e-6_eval64clip
+runtime:
+  framework: pytorch_reimplementation_of_kauldron_protocol
+  mixed_precision: true
+  fail_on_non_finite: true
+  batch_size: 2
+  train_batch_size: 2
+  val_batch_size: 2
+  num_workers: 2
+  train_num_workers: 4
+  val_num_workers: 1
+  pin_memory: true
+  persistent_workers: true
+  prefetch_factor: 1
+  timeout: 300
+  data_parallel: false
+  train_prefetch_factor: 2
+  debug_slow_stage_seconds: 20
+data:
+  canonical_schema_doc: docs/data_schema.md
+  clip_frames: 48
+  image_size:
+  - 256
+  - 256
+  train_dataset_type: mixture_raw
+  val_dataset_type: mixture_raw
+  bad_sample_registry:
+    path: data/meta/bad_sample.json
+    max_retries: 64
+  pointodyssey:
+    root: data/pointodyssey/v2
+    split_map:
+      train: train
+      val: test
+      test: test
+  dynamic_replica:
+    root: data/dynamic-replica/v2
+    split_map:
+      train: train
+      val: valid
+      test: test
+    camera_convention: dynamic_replica_v2
+    depth_decode_mode: auto
+    depth_divisor: 10000.0
+  kubric_full:
+    root: data/kubric_full/movi-f_full/512x512
+    backend: preprocess
+    processed_root: data/kubric_full/kubric_full_process_v1
+    mmap_mode: r
+    eval_cache_max_items: 2
+    tfds_split_map:
+      train: train
+      val: validation
+      test: validation
+    shuffle_buffer_size: 64
+  tartanair:
+    root: data/tartanair/v2
+    camera_name: lcam_front
+    difficulties:
+    - Data_easy
+    - Data_hard
+    split_modulo: 20
+    max_depth_m: 1000.0
+  virtual_kitti2:
+    root: data/vitual-kitti-2/v2
+    variants:
+    - clone
+    camera_ids:
+    - 0
+  scannet:
+    root: data/scannet/plus-v2/data
+    split_files:
+      train: data/scannet/plus-v2/splits/nvs_sem_train.txt
+      val: data/scannet/plus-v2/splits/nvs_sem_val.txt
+      test: data/scannet/plus-v2/splits/nvs_test.txt
+    source: iphone_rgbd
+  train_dataset_mixture:
+  - pointodyssey
+  - dynamic_replica
+  - kubric_full
+  - tartanair
+  - virtual_kitti2
+  - scannet
+  - blendermvs
+  - co3d
+  - mvs_synth
+  val_dataset_mixture:
+  - pointodyssey
+  - dynamic_replica
+  - kubric_full
+  - tartanair
+  - virtual_kitti2
+  - scannet
+  mixture_sampling_weights:
+    pointodyssey: 1.0
+    dynamic_replica: 1.2
+    kubric_full: 0.8
+    tartanair: 1.6
+    virtual_kitti2: 1.2
+    scannet: 1.3
+    blendermvs: 1.8
+    co3d: 1.3
+    mvs_synth: 1.2
+  blendermvs:
+    roots:
+    - data/blendermvs/base-low-res/BlendedMVS
+    - data/blendermvs/blendermvs-plus/extracted
+    - data/blendermvs/blendermvs-plusplus/extracted
+    split_modulo: 20
+    max_depth_m: 1000.0
+    depth_clip_percentile: 98.0
+    min_depth_valid_ratio: 0.01
+    min_valid_frames_ratio: 0.5
+  co3d:
+    root: data/co3d/v2
+    use_depth_masks: true
+  mvs_synth:
+    root: data/mvs-synth/v1
+    split_modulo: 20
+    depth_scale: 1.0
+    max_depth_m: 1000.0
+    depth_clip_percentile: 98.0
+    min_depth_valid_ratio: 0.01
+    min_valid_frames_ratio: 0.5
+train_sampling:
+  queries_per_clip: 4096
+  hard_query_ratio: 0.2
+  hard_query_source: depth_and_motion_boundaries_sobel
+  timestep_sampling:
+    t_src: uniform
+    t_tgt: uniform
+    t_cam: uniform
+    prob_t_tgt_equals_t_cam: 0.4
+    t_src_tgt_delta_mode: static_local_global
+loss:
+  total: weighted_sum
+  xyz_3d:
+    enabled: true
+    type: l1
+    weight_lambda_3d: 1.0
+    normalize_by_mean_depth: true
+    value_transform: sign_x_log1p_abs_x
+  uv_2d:
+    enabled: true
+    type: l1
+    weight_lambda_2d: 0.1
+  visibility:
+    enabled: true
+    type: bce
+    weight_lambda_vis: 0.1
+  displacement:
+    enabled: true
+    type: l1
+    weight_lambda_disp: 0.1
+  normal:
+    enabled: true
+    type: cosine_similarity
+    weight_lambda_normal: 0.4
+  confidence:
+    enabled: true
+    mode: main_text
+    weight_lambda_conf: 0.2
+    confidence_penalty: -log(c)
+    confidence_weights_xyz_error: true
+    lconf_ablation:
+      enabled: false
+      type: exp_neg_abs_xyz_error_l1
+      weight_lambda_lconf: 0.2
+  apply_only_where_gt_available: true
+  reprojection_uv_from_xyz:
+    enabled: false
+optimizer:
+  type: adamw
+  weight_decay: 0.03
+  gradient_clip_l2_norm: 10.0
+  learning_rate:
+    schedule: cosine_decay
+    warmup_steps: 500
+    peak_lr: 4.0e-06
+    final_lr: 4.0e-07
+augmentation:
+  color_jitter:
+    enabled: false
+  color_drop:
+    enabled: false
+    probability: 0.0
+  gaussian_blur:
+    enabled: false
+    probability: 0.0
+  random_crop:
+    enabled: false
+    scale_min_max:
+    - 1.0
+    - 1.0
+    random_zoom_in_probability: 0.0
+  temporal_subsample:
+    enabled: true
+    stride_min: 1
+    stride_max: 2
+schedule:
+  total_steps: 30000
+  paper_reference_runtime: H200 8-GPU no-augmentation refinement for global median
+    alignment.
+  local_repro_override:
+    enabled: false
+checkpoint:
+  save_every_steps: 1000
+  step_save_every_steps: 1000
+  keep_last_k: 20
+  keep_best_by: val_loss_total
+  auto_eval_worldtrack_step:
+    enabled: true
+    num_frames: 64
+    script: scripts/eval_worldtrack/run_batch_eval_worldtrack_step_ckpts.sh
+    log_dir_name: eval_worldtrack_step_auto_logs
+    env:
+      GPUS: 4,5,6,7
+      MAX_PARALLEL: 4
+      PROCS_PER_GPU: 1
+logging:
+  log_every_steps: 100
+  validate_every_steps: 2000
+  validate_max_batches_global: 64
+  validate_max_samples_global: 256
+  per_dataset_validation:
+    enabled: false
+    max_batches_global: 0
+    max_samples_global: 512
+  visualization:
+    enabled: true
+    train_every_steps: 1000
+    on_validation: true
+    max_samples: 1
+    max_points: 128
+    max_lines: -1
+    include_3d: true
+    save_png: true

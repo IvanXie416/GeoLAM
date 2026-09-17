@@ -1,0 +1,3 @@
+
+*.npz !text !filter !merge !diff
+*.pt !text !filter !merge !diff

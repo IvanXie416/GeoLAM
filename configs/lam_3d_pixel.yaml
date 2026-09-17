@@ -1,0 +1,46 @@
+paths:
+  gld_root: third_party/GLD
+  gld_encoder_pretrained_path: third_party/GLD/pretrained_models/da3
+  gld_mae_weight: third_party/GLD/pretrained_models/mae_decoder.pt
+  gld_decoder_config: configs/gld_mae_decoder
+  d4rt_root: third_party/Open-d4rt
+  gld_checkpoint:
+  d4rt_config: checkpoints/d4rt/OpenD4RT_32CLIP_9Dataset_NoAUG/model.yaml
+  d4rt_checkpoint: checkpoints/d4rt/OpenD4RT_32CLIP_9Dataset_NoAUG/opend4rt.ckpt
+  output_dir: outputs/lam_3d_pixel
+
+data:
+  image_size: 224
+  d4rt_image_size: 256
+  d4rt_context_frames: 4
+  strides: [5, 10, 15, 20]
+  num_sample_frames: 9
+
+model:
+  type: lam_3D_pixel
+  f_dim: 1536
+  c_state: 1024
+  c_z: 1024
+  z_dim: 512
+  c_geo: 8
+  k_action: 4
+  k_geo: 4
+  latent_dim: 32
+  heads: 16
+  action_bottleneck_depth: 4
+  idm_depth: 8
+  fdm_depth: 8
+  fdm_self_attn_every: 2
+  ffn_ratio: 4.0
+
+d4rt:
+  query_grid_size: 16
+  residual_motion_weight: 2.0
+  xyz_motion_scale: 0.1
+  uv_motion_scale: 0.05
+
+loss:
+  phase0_warmup_steps: 10000
+  phase1_geo_ramp_steps: 1000
+  lambda_pixel: 1.0
+  lambda_geo_action: 1.0

@@ -1,0 +1,20 @@
+name: d4rt
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - pip:
+      - --extra-index-url=https://download.pytorch.org/whl/cu124
+      - torch==2.6.0+cu124
+      - torchvision==0.21.0+cu124
+      - numpy==2.2.5
+      - PyYAML==6.0.3
+      - opencv-python-headless==4.13.0.92
+      - imageio==2.37.3
+      - pillow==12.1.1
+      - matplotlib==3.10.8
+      - tqdm==4.67.3
+      - tensorboard==2.20.0
+      - lz4==4.4.5

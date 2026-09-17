@@ -1,0 +1,20 @@
+name: geolam
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pytorch
+  - torchvision
+  - pytorch-cuda=12.1
+  - pyyaml
+  - pillow
+  - numpy
+  - pytest
+  - pip
+  - pip:
+      - -e .
+      - transformers
+      - safetensors
+      - einops

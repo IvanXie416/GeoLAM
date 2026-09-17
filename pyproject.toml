@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "geolam"
+version = "0.1.0"
+description = "GLD-main latent action model with D4RT geometry teacher distillation"
+requires-python = ">=3.10"
+dependencies = [
+  "torch",
+  "pyyaml",
+  "pillow",
+  "numpy",
+  "opencv-python",
+  "scikit-image",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

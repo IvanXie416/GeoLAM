@@ -1,0 +1,7 @@
+checkpoints/
+outputs/
+video_cache/
+.pytest_cache/
+__pycache__/
+*.egg-info/
+*.py[cod]
